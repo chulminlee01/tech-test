@@ -79,19 +79,28 @@ def create_llm_client(
         try:
             return _create_deepseek_client(temp_val, **kwargs)
         except Exception as e:
-            print(f"⚠️  DeepSeek client failed: {e}")
-            print("   Falling back to OpenRouter...")
-        
-        # Try OpenRouter fallback model (fallback #2)
-        try:
-            return _create_openrouter_fallback_client(temp_val, **kwargs)
-        except Exception as e:
-            print(f"⚠️  OpenRouter fallback failed: {e}")
+            error_msg = str(e).lower()
+            if "user not found" in error_msg or "authentication" in error_msg:
+                print(f"⚠️  OpenRouter API key is invalid (User not found)")
+                print(f"   Tip: Comment out OPENROUTER_API_KEY in .env or get valid key from https://openrouter.ai")
+            else:
+                print(f"⚠️  DeepSeek client failed: {e}")
+                print("   Falling back to OpenRouter...")
+                
+                # Try OpenRouter fallback model (fallback #2)
+                try:
+                    return _create_openrouter_fallback_client(temp_val, **kwargs)
+                except Exception as e2:
+                    print(f"⚠️  OpenRouter fallback failed: {e2}")
     
     # No valid keys found
-    raise LLMClientError(
-        "No valid API keys found. Please set one of: NVIDIA_API_KEY, OPENROUTER_API_KEY in .env"
-    )
+    error_message = "No valid API keys found or all providers failed.\n"
+    error_message += "Please check your .env file:\n"
+    error_message += "  - NVIDIA_API_KEY (primary)\n"
+    error_message += "  - OPENROUTER_API_KEY (optional fallback - must be valid)\n"
+    error_message += "\nIf you see 'User not found' error, comment out OPENROUTER_API_KEY in .env"
+    
+    raise LLMClientError(error_message)
 
 
 def _create_nvidia_client(temperature: float, **kwargs: Any) -> ChatOpenAI:
