@@ -22,16 +22,7 @@ def _get_nvidia_headers() -> Dict[str, str]:
     return {}
 
 
-def _get_openrouter_headers() -> Dict[str, str]:
-    """Get OpenRouter attribution headers."""
-    headers: Dict[str, str] = {}
-    site = os.getenv("OPENROUTER_SITE_URL")
-    app = os.getenv("OPENROUTER_APP_NAME")
-    if site:
-        headers["HTTP-Referer"] = site
-    if app:
-        headers["X-Title"] = app
-    return headers
+# OpenRouter functions removed - using NVIDIA only
 
 
 def create_llm_client(
@@ -98,55 +89,7 @@ def _create_nvidia_client(temperature: float, **kwargs: Any) -> ChatOpenAI:
     )
 
 
-def _create_deepseek_client(temperature: float, **kwargs: Any) -> ChatOpenAI:
-    """Create DeepSeek client with thinking enabled."""
-    model = os.getenv("FALLBACK_MODEL", "deepseek-ai/deepseek-v3.1-terminus")
-    base_url = os.getenv("FALLBACK_BASE_URL", "https://openrouter.ai/api/v1")
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    thinking_enabled = os.getenv("DEEPSEEK_THINKING", "True").lower() == "true"
-    
-    if not api_key:
-        raise LLMClientError("OPENROUTER_API_KEY not found")
-    
-    print(f"✨ Using DeepSeek {model} (thinking={'on' if thinking_enabled else 'off'})")
-    
-    # Build model_kwargs with thinking option
-    model_kwargs = kwargs.pop("model_kwargs", {})
-    if thinking_enabled:
-        model_kwargs["extra_body"] = {
-            "chat_template_kwargs": {"thinking": True}
-        }
-    
-    return ChatOpenAI(
-        model=model,
-        temperature=temperature,
-        base_url=base_url,
-        api_key=api_key,
-        default_headers=_get_openrouter_headers(),
-        model_kwargs=model_kwargs,
-        **kwargs
-    )
-
-
-def _create_openrouter_fallback_client(temperature: float, **kwargs: Any) -> ChatOpenAI:
-    """Create OpenRouter fallback client."""
-    model = os.getenv("OPENROUTER_FALLBACK_MODEL", "z-ai/glm-4.5-air:free")
-    base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    
-    if not api_key:
-        raise LLMClientError("OPENROUTER_API_KEY not found")
-    
-    print(f"✨ Using OpenRouter {model}")
-    
-    return ChatOpenAI(
-        model=model,
-        temperature=temperature,
-        base_url=base_url,
-        api_key=api_key,
-        default_headers=_get_openrouter_headers(),
-        **kwargs
-    )
+# DeepSeek and OpenRouter client functions removed - NVIDIA only mode
 
 
 def _create_with_explicit_model(model: str, temperature: float, **kwargs: Any) -> ChatOpenAI:
